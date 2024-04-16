@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using System.Security.Cryptography.X509Certificates;
 using Villa_VillaAPI.Data;
 using Villa_VillaAPI.Models;
 using Villa_VillaAPI.Models.DTO;
@@ -43,10 +44,12 @@ namespace Villa_VillaAPI.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public ActionResult<VillaDTO> CreateVilla([FromBody] VillaDTO villaDTO)
         {
-            if (!ModelState.IsValid)
+            if (VillaStore.villaList.FirstOrDefault(u => u.Name.ToLower() == villaDTO.Name.ToLower()) != null) 
             {
+                ModelState.AddModelError("CustomError", "Villa already Exists");
                 return BadRequest(ModelState);
             }
+
             if (villaDTO == null)
             {
                 return BadRequest(villaDTO);
@@ -60,7 +63,46 @@ namespace Villa_VillaAPI.Controllers
             VillaStore.villaList.Add(villaDTO);
 
             return CreatedAtRoute("GetVilla", new { id = villaDTO.Id}, villaDTO);
+           
 
         }
-    }
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [HttpDelete("id:int", Name = "DeleteVilla")]
+        public IActionResult DeleteVilla(int id)
+        {
+            if (id == 0)
+            {
+                return BadRequest();
+            }
+            var villa = VillaStore.villaList.FirstOrDefault(u=>u.Id == id);
+            if (villa == null)
+            {
+                return NotFound();
+            }
+
+            VillaStore.villaList.Remove(villa);
+            return NoContent();
+
+            
+            
+        }
+        [HttpPut("id: int", Name = "UpdateVilla")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public IActionResult UpdateVilla(int id, [FromBody] VillaDTO villaDTO)
+        {
+            if (villaDTO == null || id != villaDTO.Id)
+            {
+                return BadRequest();
+            }
+            var villa = VillaStore.villaList.FirstOrDefault(u => u.Id == id);
+            villa.Name = villaDTO.Name;
+            villa.Sqft = villaDTO.Sqft;
+            villa.Occupancy = villaDTO.Occupancy;
+
+            return NoContent();
+        }
+    }   
 }
