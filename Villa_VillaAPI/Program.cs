@@ -1,12 +1,24 @@
+
+
+using Villa_VillaAPI.Logging;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+//SeriLog
+//Log.Logger = new LoggerConfiguration().MinimumLevel.Debug()
+//    .WriteTo.File("Log/villaLogs.txt", rollingInterval:RollingInterval.Day).CreateLogger();
 
-builder.Services.AddControllers();
+//builder.Host.UseSerilog();
+
+builder.Services.AddControllers(option =>
+{
+    //option.RespectBrowserAcceptHeader = true;
+}).AddNewtonsoftJson().AddXmlDataContractSerializerFormatters();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-
+builder.Services.AddSingleton<ILogging, LoggingV2>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

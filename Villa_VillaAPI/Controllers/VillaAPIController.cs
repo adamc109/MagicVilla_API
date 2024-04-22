@@ -1,6 +1,8 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.JsonPatch;
+using Microsoft.AspNetCore.Mvc;
 using System.Security.Cryptography.X509Certificates;
 using Villa_VillaAPI.Data;
+using Villa_VillaAPI.Logging;
 using Villa_VillaAPI.Models;
 using Villa_VillaAPI.Models.DTO;
 
@@ -10,14 +12,21 @@ namespace Villa_VillaAPI.Controllers
     [ApiController]
     public class VillaAPIController : ControllerBase
     {
+        public readonly ILogging _logger;
+
+        public VillaAPIController(ILogging logger)
+        {
+            _logger = logger;
+        }
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public ActionResult<IEnumerable<VillaDTO>> GetVillas()
         {
+            _logger.Log("Getting all villas", "");
             return Ok(VillaStore.villaList);
         }
 
-        [HttpGet("id:int", Name ="GetVilla")]
+        [HttpGet("{id:int}", Name ="GetVilla")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -26,6 +35,7 @@ namespace Villa_VillaAPI.Controllers
         {
             if (id == 0)
             {
+                _logger.Log("Get Villa Error with Id " + id, "error");
                 return BadRequest();
             }
 
@@ -69,7 +79,7 @@ namespace Villa_VillaAPI.Controllers
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [HttpDelete("id:int", Name = "DeleteVilla")]
+        [HttpDelete("{id:int}", Name = "DeleteVilla")]
         public IActionResult DeleteVilla(int id)
         {
             if (id == 0)
@@ -88,7 +98,7 @@ namespace Villa_VillaAPI.Controllers
             
             
         }
-        [HttpPut("id: int", Name = "UpdateVilla")]
+        [HttpPut("{id:int}", Name = "UpdateVilla")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public IActionResult UpdateVilla(int id, [FromBody] VillaDTO villaDTO)
@@ -104,5 +114,32 @@ namespace Villa_VillaAPI.Controllers
 
             return NoContent();
         }
+
+        [HttpPatch("{id:int}", Name = "UpdatePartialVilla")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public IActionResult UpdatePartialVilla(int id, JsonPatchDocument<VillaDTO> patchDTO)
+        {
+            if (patchDTO == null || id == 0)
+            {
+                return BadRequest();
+            }
+
+            var villa = VillaStore.villaList.FirstOrDefault(u => u.Id == id);
+            if (villa == null)
+            {
+                return BadRequest();
+            }
+            patchDTO.ApplyTo(villa, ModelState);
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            return NoContent();
+        }
+
+
+
     }   
 }
