@@ -174,11 +174,11 @@ namespace Villa_VillaAPI.Controllers
                 {
                     return BadRequest();
                 }
-                if (await _dbVilla.GetAsync(u => u.Id == updateDTO.VillaID) == null)
-                {
-                    ModelState.AddModelError("ErrorMessages", "Villa ID is Invalid");
-                    return BadRequest(ModelState);
-                }
+                //if (await _dbVilla.GetAsync(u => u.Id == updateDTO.VillaID) == null)
+                //{
+                //    ModelState.AddModelError("ErrorMessages", "Villa ID is Invalid");
+                //    return BadRequest(ModelState);
+                //}
 
                 VillaNumber model = _mapper.Map<VillaNumber>(updateDTO);
 

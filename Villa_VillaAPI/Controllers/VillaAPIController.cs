@@ -142,7 +142,7 @@ namespace Villa_VillaAPI.Controllers
                 await _dbVilla.RemoveAsync(villa);
                 _response.statusCode = HttpStatusCode.NoContent;
                 _response.IsSuccess = true;
-                return NoContent();
+                return Ok(_response);
             }
             catch (Exception ex)
             {
